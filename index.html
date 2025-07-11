@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control Financiero – Casa Puerta Grande</title>
-  <!-- Tailwind CDN -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js -->
+  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Inter font -->
+  <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body{font-family:'Inter',sans-serif;background:#f3f4f6}
@@ -20,29 +20,25 @@
     .table-container{max-height:60vh;overflow-y:auto}
     .modal-backdrop{background:rgba(0,0,0,.5);transition:opacity .3s}
     #loading-overlay{transition:opacity .3s}
-    .editor-only{display:none}
   </style>
 </head>
 <body class="p-4 md:p-8">
-  <!-- Pantalla de carga -->
+  <!-- Cargador: se oculta en cuanto la app termina de inicializar -->
   <div id="loading-overlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
     <div class="text-center">
       <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
-      <p id="loading-text" class="mt-2 text-lg font-semibold text-gray-700">Conectando a la base de datos...</p>
+      <p class="mt-2 text-lg font-semibold text-gray-700">Cargando app…</p>
     </div>
   </div>
 
-  <!-- Contenedor principal -->
+  <!-- CONTENEDOR PRINCIPAL -->
   <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-6">
-    <header class="mb-6 border-b pb-4 flex justify-between items-center">
-      <div>
-        <h1 class="text-3xl font-bold text-gray-800">CONTROL FINANCIERO OFICIAL</h1>
-        <p class="text-lg text-gray-500">Casa Puerta Grande</p>
-      </div>
-      <div id="user-status" class="text-right"></div>
+    <header class="mb-6 border-b pb-4">
+      <h1 class="text-3xl font-bold text-gray-800">CONTROL FINANCIERO OFICIAL</h1>
+      <p class="text-lg text-gray-500">Casa Puerta Grande</p>
     </header>
 
-    <!-- Navegación -->
+    <!-- Navegación de pestañas -->
     <div class="mb-6 flex flex-wrap gap-2 border-b border-gray-200 pb-4">
       <button class="tab-button active" onclick="showTab('presupuesto')">1. Presupuesto</button>
       <button class="tab-button" onclick="showTab('gastos')">2. Gastos</button>
@@ -51,72 +47,90 @@
       <button class="tab-button" onclick="showTab('control')">5. Control</button>
     </div>
 
-    <!-- Contenido de pestañas -->
+    <!-- CONTENIDO -->
     <main>
-      <!-- PRESUPUESTO -->
+      <!-- ========= PRESUPUESTO ========= -->
       <section id="presupuesto" class="tab-content">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-semibold text-gray-700">Presupuesto / Ingresos</h2>
-          <button id="show-presupuesto-modal" class="editor-only bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">Añadir Ingreso</button>
+          <h2 class="text-2xl font-semibold text-gray-700">Ingresos</h2>
+          <button id="show-presupuesto-modal" class="bg-blue-600 text-white px-4 py-2 rounded-lg">Añadir Ingreso</button>
         </div>
         <div class="table-container overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50 sticky top-0">
-              <tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Forma de pago</th><th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto (MXN)</th></tr>
-            </thead>
+            <thead class="bg-gray-50 sticky top-0"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Forma de pago</th><th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto (MXN)</th></tr></thead>
             <tbody id="presupuesto-body" class="bg-white divide-y divide-gray-200"></tbody>
-            <tfoot class="bg-gray-50"><tr><td colspan="3" class="px-6 py-4 text-right font-bold text-gray-700">TOTAL PRESUPUESTO</td><td id="presupuesto-total" class="px-6 py-4 text-right font-bold text-gray-900"></td></tr></tfoot>
+            <tfoot class="bg-gray-50"><tr><td colspan="3" class="px-6 py-4 text-right font-bold">Total Presupuesto</td><td id="presupuesto-total" class="px-6 py-4 text-right font-bold"></td></tr></tfoot>
           </table>
         </div>
       </section>
 
-      <!-- GASTOS -->
+      <!-- ========= GASTOS ========= -->
       <section id="gastos" class="tab-content hidden">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-2xl font-semibold text-gray-700">Registro de Gastos</h2>
-          <button id="show-gasto-modal" class="editor-only bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">Añadir Gasto</button>
+          <h2 class="text-2xl font-semibold text-gray-700">Gastos</h2>
+          <button id="show-gasto-modal" class="bg-green-600 text-white px-4 py-2 rounded-lg">Añadir Gasto</button>
         </div>
         <div class="table-container overflow-x-auto">
           <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50 sticky top-0"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th><th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto (MXN)</th></tr></thead>
             <tbody id="gastos-body" class="bg-white divide-y divide-gray-200"></tbody>
-            <tfoot class="bg-gray-50"><tr><td colspan="4" class="px-6 py-4 text-right font-bold text-gray-700">TOTAL GASTOS</td><td id="gastos-total" class="px-6 py-4 text-right font-bold text-gray-900"></td></tr></tfoot>
+            <tfoot class="bg-gray-50"><tr><td colspan="4" class="px-6 py-4 text-right font-bold">Total Gastos</td><td id="gastos-total" class="px-6 py-4 text-right font-bold"></td></tr></tfoot>
           </table>
         </div>
       </section>
 
-      <!-- RESUMEN -->
+      <!-- ========= RESUMEN ========= -->
       <section id="resumen" class="tab-content hidden">
         <h2 class="text-2xl font-semibold text-gray-700 mb-4">Resumen Financiero</h2>
         <div class="max-w-md mx-auto space-y-4">
-          <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg"><span class="font-semibold text-blue-800">Total Recibido:</span><span id="resumen-recibido" class="font-bold text-lg text-blue-900"></span></div>
-          <div class="flex justify-between items-center p-4 bg-orange-50 rounded-lg"><span class="font-semibold text-orange-800">Total Gastado:</span><span id="resumen-gastado" class="font-bold text-lg text-orange-900"></span></div>
-          <div id="resumen-saldo-container" class="flex justify-between items-center p-4 rounded-lg"><span class="font-semibold">Saldo Disponible:</span><span id="resumen-saldo" class="font-bold text-xl"></span></div>
+          <div class="flex justify-between p-4 bg-blue-50 rounded-lg"><span>Total Recibido:</span><span id="resumen-recibido" class="font-bold"></span></div>
+          <div class="flex justify-between p-4 bg-orange-50 rounded-lg"><span>Total Gastado:</span><span id="resumen-gastado" class="font-bold"></span></div>
+          <div id="resumen-saldo-container" class="flex justify-between p-4 rounded-lg"><span>Saldo Disponible:</span><span id="resumen-saldo" class="font-bold text-lg"></span></div>
         </div>
       </section>
 
-      <!-- ANÁLISIS -->
+      <!-- ========= ANÁLISIS ========= -->
       <section id="analisis" class="tab-content hidden">
         <h2 class="text-2xl font-semibold text-gray-700 mb-4">Análisis de Gastos</h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div>
-            <h3 class="text-lg font-semibold text-gray-600 mb-2">Gastos por Categoría</h3>
-            <table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Monto</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">% del Total</th></tr></thead><tbody id="analisis-body" class="bg-white divide-y divide-gray-200"></tbody></table>
+            <table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left text-xs font-medium">Categoría</th><th class="px-4 py-2 text-right text-xs font-medium">Monto</th><th class="px-4 py-2 text-right text-xs font-medium">% del Total</th></tr></thead><tbody id="analisis-body" class="bg-white divide-y divide-gray-200"></tbody></table>
           </div>
-          <div class="w-full max-w-md mx-auto"><h3 class="text-lg font-semibold text-gray-600 mb-2 text-center">Distribución de Gastos</h3><canvas id="gastos-chart"></canvas></div>
+          <div class="w-full max-w-md mx-auto"><canvas id="gastos-chart"></canvas></div>
         </div>
       </section>
 
-      <!-- CONTROL -->
+      <!-- ========= CONTROL ========= -->
       <section id="control" class="tab-content hidden">
-        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Panel de Control y Alertas</h2>
-        <div class="space-y-4 max-w-2xl mx-auto"><div id="control-alerta-saldo" class="p-4 rounded-lg font-bold text-center text-lg"></div><div id="control-alerta-presupuesto" class="p-4 rounded-lg font-bold text-center text-lg"></div></div>
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Panel de Control</h2>
+        <div class="space-y-4 max-w-xl mx-auto">
+          <div id="control-alerta-saldo" class="p-4 rounded-lg font-bold text-center"></div>
+          <div id="control-alerta-presupuesto" class="p-4 rounded-lg font-bold text-center"></div>
+        </div>
       </section>
     </main>
   </div>
 
-  <!-- Modals -->
-  <!-- Ingreso -->
-  <div id="presupuesto-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden"><div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"><h3 class="text-xl font-semibold mb-4">Añadir Nuevo Ingreso</h3><form id="presupuesto-form"><div class="space-y-4"><div><label for="presupuesto-fecha" class="block text-sm font-medium text-gray-700">Fecha</label><input type="date" id="presupuesto-fecha" required class="mt-1 block w-full border-gray-300 rounded-md"></div><div><label for="presupuesto-concepto" class="block text-sm font-medium text-gray-700">Concepto</label><input type="text" id="presupuesto-concepto" required class="mt-1 block w-full border-gray-300 rounded-md"></div><div><label for="presupuesto-pago" class="block text-sm font-medium text-gray-700">Forma de pago</label><select id="presupuesto-pago" required class="mt-1 block w-full border-gray-300 rounded-md"><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option></select></div><div><label for="presupuesto-monto" class="block text-sm font-medium text-gray-700">Monto (MXN)</label><input type="number" step="0.01" id="presupuesto-monto" required class="mt-1 block w-full border-gray-300 rounded-md"></div></div><div class="mt-6 flex justify-end space-x-3"><button type="button" id="cancel-presupuesto" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg">Cancelar</button><button type="submit" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">Guardar</button></div></form></div></div>
-  <!-- Gasto -->
-  <div id="gasto-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden"><div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"><h3 class="text
+  <!-- ======================= MODALES ======================= -->
+  <!-- Modal Ingreso -->
+  <div id="presupuesto-modal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-semibold mb-4">Añadir Ingreso</h3>
+      <form id="presupuesto-form" class="space-y-4">
+        <div><label class="block text-sm">Fecha</label><input type="date" id="presupuesto-fecha" required class="mt-1 w-full border rounded-md"></div>
+        <div><label class="block text-sm">Concepto</label><input type="text" id="presupuesto-concepto" required class="mt-1 w-full border rounded-md"></div>
+        <div><label class="block text-sm">Forma de pago</label><select id="presupuesto-pago" required class="mt-1 w-full border rounded-md"><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option></select></div>
+        <div><label class="block text-sm">Monto (MXN)</label><input type="number" step="0.01" id="presupuesto-monto" required class="mt-1 w-full border rounded-md"></div>
+        <div class="flex justify-end gap-2 pt-4"><button type="button" id="cancel-presupuesto" class="px-4 py-2 bg-gray-200 rounded">Cancelar</button><button class="px-4 py-2 bg-blue-600 text-white rounded">Guardar</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Gasto -->
+  <div id="gasto-modal" class="fixed inset-0 z-50 hidden modal-backdrop items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+      <h3 class="text-xl font-semibold mb-4">Añadir Gasto</h3>
+      <form id="gasto-form" class="space-y-4">
+        <div><label class="block text-sm">Fecha</label><input type="date" id="gasto-fecha" required class="mt-1 w-full border rounded-md"></div>
+        <div><label class="block text-sm">Concepto</label><input type="text" id="gasto-concepto" required class="mt-1 w-full border rounded-md"></div>
+        <div><label class="block text-sm">Categoría</label><select id="gasto-categoria" required class="mt-1 w-full border rounded-md"><option>Material</option><option>Herramienta</option><option>Transporte
