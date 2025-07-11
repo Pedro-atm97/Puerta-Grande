@@ -3,168 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control Financiero de Obra</title>
-
-  <!-- ============================ LIBRERÍAS CDN ============================ -->
-  <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- SheetJS: usamos Cloudflare CDN **sin** atributos SRI para evitar bloqueos de integridad -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.3/xlsx.full.min.js"></script>
-  <!-- PapaParse para CSV -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <!-- html2pdf para PDF -->
-  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
-  <!-- Chart.js para gráficas -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
-  <!-- ============================ ESTILOS ============================ -->
+  <title>Control Financiero – Casa Puerta Grande</title>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { padding-top: 70px; }
-    .sticky-header th { position: sticky; top: 0; background: #f8f9fa; z-index: 1; }
-    .low-balance { color:#dc3545;font-weight:bold; }
-    .valid { color:#198754; }
-    .invalid { color:#dc3545; }
-    table thead tr { background:#e9ecef; }
-    table tbody tr:nth-child(odd){ background:#f8f9fa; }
-    td[contenteditable="true"]{ background:#fffbe6; }
-    .tab-pane{ padding-top:1rem; }
+    body{font-family:'Inter',sans-serif;background:#f3f4f6}
+    .tab-button{transition:all .3s}
+    .tab-button.active{border-color:#3b82f6;background:#3b82f6;color:#fff}
+    .saldo-critical{background:#FFC7CE;color:#9C0006}
+    .saldo-warning{background:#FFEB9C;color:#9C5700}
+    .saldo-stable{background:#C6EFCE;color:#006100}
+    .table-container{max-height:60vh;overflow-y:auto}
+    .modal-backdrop{background:rgba(0,0,0,.5);transition:opacity .3s}
+    #loading-overlay{transition:opacity .3s}
+    .editor-only{display:none}
   </style>
 </head>
-<body>
-  <!-- ============================ NAVBAR ============================ -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">Control Financiero</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0" role="tablist">
-          <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#presupuesto" role="tab">Presupuesto</a></li>
-          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#gastos" role="tab">Gastos</a></li>
-          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#resumen" role="tab">Resumen</a></li>
-          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#analisis" role="tab">Análisis</a></li>
-          <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#control" role="tab">Control</a></li>
-        </ul>
-        <button class="btn btn-outline-light" id="editToggle">Activar Edición</button>
-      </div>
-    </div>
-  </nav>
-
-  <!-- ============================ CONTENIDO ============================ -->
-  <div class="container">
-    <div class="tab-content">
-      <!-- ---------- PESTAÑA PRESUPUESTO ---------- -->
-      <div id="presupuesto" class="tab-pane fade show active" role="tabpanel">
-        <h4>Presupuesto</h4>
-        <div class="d-flex gap-2 mb-2">
-          <button class="btn btn-success btn-sm" id="addBudgetRow">➕ Agregar Fila</button>
-          <button class="btn btn-primary btn-sm" id="exportBudgetExcel">⬇️ Exportar a Excel</button>
-          <input type="file" id="importBudgetFile" hidden>
-          <button class="btn btn-secondary btn-sm" id="importBudgetBtn">📂 Importar Datos</button>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped" id="budgetTable">
-            <thead class="sticky-header"><tr><th>Concepto</th><th>Monto (MXN)</th><th>Acciones</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ---------- PESTAÑA GASTOS ---------- -->
-      <div id="gastos" class="tab-pane fade" role="tabpanel">
-        <h4>Gastos</h4>
-        <div class="d-flex gap-2 mb-2">
-          <button class="btn btn-success btn-sm" id="addExpenseRow">➕ Agregar Fila</button>
-          <button class="btn btn-primary btn-sm" id="exportExpenseExcel">⬇️ Exportar a Excel</button>
-          <input type="file" id="importExpenseFile" hidden>
-          <button class="btn btn-secondary btn-sm" id="importExpenseBtn">📂 Importar Datos</button>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-bordered table-striped" id="expenseTable">
-            <thead class="sticky-header"><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto (MXN)</th><th>Acciones</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- ---------- PESTAÑA RESUMEN ---------- -->
-      <div id="resumen" class="tab-pane fade" role="tabpanel">
-        <div id="summaryContent">
-          <h4>Resumen Financiero</h4>
-          <p><strong>Total Presupuesto:</strong> $<span id="totalBudget">0</span></p>
-          <p><strong>Total Gastos:</strong> $<span id="totalExpenses">0</span></p>
-          <p><strong>Saldo Restante:</strong> $<span id="balance">0</span></p>
-        </div>
-        <button class="btn btn-danger btn-sm" id="downloadPDF">📄 Descargar/Imprimir PDF</button>
-      </div>
-
-      <!-- ---------- PESTAÑA ANÁLISIS ---------- -->
-      <div id="analisis" class="tab-pane fade" role="tabpanel">
-        <h4>Análisis de Gastos</h4>
-        <div class="table-responsive mb-3">
-          <table class="table table-bordered table-striped" id="pivotTable">
-            <thead class="sticky-header"><tr><th>Categoría</th><th>Total (MXN)</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <canvas id="pieChart" height="200"></canvas>
-      </div>
-
-      <!-- ---------- PESTAÑA CONTROL ---------- -->
-      <div id="control" class="tab-pane fade" role="tabpanel">
-        <h4>Control y Validaciones</h4>
-        <p id="validationMsg" class="fw-bold"></p>
-        <button class="btn btn-warning btn-sm" id="resetData">🗑️ Restablecer LocalStorage</button>
-      </div>
+<body class="p-4 md:p-8">
+  <!-- Pantalla de carga -->
+  <div id="loading-overlay" class="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="text-center">
+      <svg class="animate-spin h-8 w-8 text-blue-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+      <p id="loading-text" class="mt-2 text-lg font-semibold text-gray-700">Conectando a la base de datos...</p>
     </div>
   </div>
 
-  <!-- ============================ SCRIPT PRINCIPAL ============================ -->
-  <script>
-  // ----- CONFIG -----
-  const EDIT_PASSWORD = 'ppedro';
+  <!-- Contenedor principal -->
+  <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-lg p-6">
+    <header class="mb-6 border-b pb-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">CONTROL FINANCIERO OFICIAL</h1>
+        <p class="text-lg text-gray-500">Casa Puerta Grande</p>
+      </div>
+      <div id="user-status" class="text-right"></div>
+    </header>
 
-  // ----- STATE -----
-  let budgetData=[];
-  let expenseData=[];
-  let editMode=false;
-  let pieChartInstance=null;
+    <!-- Navegación -->
+    <div class="mb-6 flex flex-wrap gap-2 border-b border-gray-200 pb-4">
+      <button class="tab-button active" onclick="showTab('presupuesto')">1. Presupuesto</button>
+      <button class="tab-button" onclick="showTab('gastos')">2. Gastos</button>
+      <button class="tab-button" onclick="showTab('resumen')">3. Resumen</button>
+      <button class="tab-button" onclick="showTab('analisis')">4. Análisis</button>
+      <button class="tab-button" onclick="showTab('control')">5. Control</button>
+    </div>
 
-  // ----- INIT -----
-  document.addEventListener('DOMContentLoaded',()=>{
-    if(typeof XLSX==='undefined'){
-      // Intenta cargar un fallback si la primera CDN falló
-      const fallback=document.createElement('script');
-      fallback.src='https://unpkg.com/xlsx/dist/xlsx.full.min.js';
-      fallback.onload=()=>console.log('SheetJS cargado desde fallback');
-      document.head.appendChild(fallback);
-    }
-    loadData();
-    renderAll();
-    bindEvents();
-  });
+    <!-- Contenido de pestañas -->
+    <main>
+      <!-- PRESUPUESTO -->
+      <section id="presupuesto" class="tab-content">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-semibold text-gray-700">Presupuesto / Ingresos</h2>
+          <button id="show-presupuesto-modal" class="editor-only bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">Añadir Ingreso</button>
+        </div>
+        <div class="table-container overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 sticky top-0">
+              <tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Forma de pago</th><th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto (MXN)</th></tr>
+            </thead>
+            <tbody id="presupuesto-body" class="bg-white divide-y divide-gray-200"></tbody>
+            <tfoot class="bg-gray-50"><tr><td colspan="3" class="px-6 py-4 text-right font-bold text-gray-700">TOTAL PRESUPUESTO</td><td id="presupuesto-total" class="px-6 py-4 text-right font-bold text-gray-900"></td></tr></tfoot>
+          </table>
+        </div>
+      </section>
 
-  // ----- STORAGE -----
-  function loadData(){
-    budgetData=JSON.parse(localStorage.getItem('budgetData')||'[]');
-    expenseData=JSON.parse(localStorage.getItem('expenseData')||'[]');
-  }
-  function saveData(){
-    localStorage.setItem('budgetData',JSON.stringify(budgetData));
-    localStorage.setItem('expenseData',JSON.stringify(expenseData));
-  }
+      <!-- GASTOS -->
+      <section id="gastos" class="tab-content hidden">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-semibold text-gray-700">Registro de Gastos</h2>
+          <button id="show-gasto-modal" class="editor-only bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">Añadir Gasto</button>
+        </div>
+        <div class="table-container overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50 sticky top-0"><tr><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Concepto</th><th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th><th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Monto (MXN)</th></tr></thead>
+            <tbody id="gastos-body" class="bg-white divide-y divide-gray-200"></tbody>
+            <tfoot class="bg-gray-50"><tr><td colspan="4" class="px-6 py-4 text-right font-bold text-gray-700">TOTAL GASTOS</td><td id="gastos-total" class="px-6 py-4 text-right font-bold text-gray-900"></td></tr></tfoot>
+          </table>
+        </div>
+      </section>
 
-  // ----- RENDERERS -----
-  function renderAll(){
-    renderBudgetTable();
-    renderExpenseTable();
-    renderPivot();
-    updateSummary();
-    validateData();
-  }
-  function renderBudgetTable(){
-    const tb=document.querySelector('#budgetTable tbody');
-    tb.innerHTML='';
-    budgetData.forEach((r,i)=>tb.insertAdjacentHTML('beforeend',`
-      <tr>
-        <td contenteditable="${editMode}" data-t="b" data-i="${i}" data-f
+      <!-- RESUMEN -->
+      <section id="resumen" class="tab-content hidden">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Resumen Financiero</h2>
+        <div class="max-w-md mx-auto space-y-4">
+          <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg"><span class="font-semibold text-blue-800">Total Recibido:</span><span id="resumen-recibido" class="font-bold text-lg text-blue-900"></span></div>
+          <div class="flex justify-between items-center p-4 bg-orange-50 rounded-lg"><span class="font-semibold text-orange-800">Total Gastado:</span><span id="resumen-gastado" class="font-bold text-lg text-orange-900"></span></div>
+          <div id="resumen-saldo-container" class="flex justify-between items-center p-4 rounded-lg"><span class="font-semibold">Saldo Disponible:</span><span id="resumen-saldo" class="font-bold text-xl"></span></div>
+        </div>
+      </section>
+
+      <!-- ANÁLISIS -->
+      <section id="analisis" class="tab-content hidden">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Análisis de Gastos</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-600 mb-2">Gastos por Categoría</h3>
+            <table class="min-w-full divide-y divide-gray-200"><thead class="bg-gray-50"><tr><th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Categoría</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">Monto</th><th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase">% del Total</th></tr></thead><tbody id="analisis-body" class="bg-white divide-y divide-gray-200"></tbody></table>
+          </div>
+          <div class="w-full max-w-md mx-auto"><h3 class="text-lg font-semibold text-gray-600 mb-2 text-center">Distribución de Gastos</h3><canvas id="gastos-chart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- CONTROL -->
+      <section id="control" class="tab-content hidden">
+        <h2 class="text-2xl font-semibold text-gray-700 mb-4">Panel de Control y Alertas</h2>
+        <div class="space-y-4 max-w-2xl mx-auto"><div id="control-alerta-saldo" class="p-4 rounded-lg font-bold text-center text-lg"></div><div id="control-alerta-presupuesto" class="p-4 rounded-lg font-bold text-center text-lg"></div></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <!-- Ingreso -->
+  <div id="presupuesto-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden"><div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"><h3 class="text-xl font-semibold mb-4">Añadir Nuevo Ingreso</h3><form id="presupuesto-form"><div class="space-y-4"><div><label for="presupuesto-fecha" class="block text-sm font-medium text-gray-700">Fecha</label><input type="date" id="presupuesto-fecha" required class="mt-1 block w-full border-gray-300 rounded-md"></div><div><label for="presupuesto-concepto" class="block text-sm font-medium text-gray-700">Concepto</label><input type="text" id="presupuesto-concepto" required class="mt-1 block w-full border-gray-300 rounded-md"></div><div><label for="presupuesto-pago" class="block text-sm font-medium text-gray-700">Forma de pago</label><select id="presupuesto-pago" required class="mt-1 block w-full border-gray-300 rounded-md"><option>Transferencia</option><option>Efectivo</option><option>Tarjeta</option></select></div><div><label for="presupuesto-monto" class="block text-sm font-medium text-gray-700">Monto (MXN)</label><input type="number" step="0.01" id="presupuesto-monto" required class="mt-1 block w-full border-gray-300 rounded-md"></div></div><div class="mt-6 flex justify-end space-x-3"><button type="button" id="cancel-presupuesto" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg">Cancelar</button><button type="submit" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg">Guardar</button></div></form></div></div>
+  <!-- Gasto -->
+  <div id="gasto-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden"><div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md"><h3 class="text
